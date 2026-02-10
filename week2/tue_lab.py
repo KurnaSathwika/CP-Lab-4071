@@ -1,116 +1,199 @@
-# Problem 1
-
-# Sample Input (paste this when running)
-# 1
-# 3 50
-# 60 10
-# 100 20
-# 120 30
-
-t = int(input())
-
-for _ in range(t):
-    n, W = map(int, input().split())
-    items = []
-
-    for _ in range(n):
-        v, w = map(int, input().split())
-        items.append((v / w, v, w))  # (ratio, value, weight)
-
-    # sort by ratio descending
-    items.sort(key=lambda x: x[0], reverse=True)
-
-    total_value = 0.0
-    capacity = W
-
-    for ratio, value, weight in items:
-        if capacity == 0:
-            break
-
-        if weight <= capacity:
-            total_value += value
-            capacity -= weight
-        else:
-            total_value += ratio * capacity
-            break
-
-    print(f"{total_value:.6f}")
-
-
-# Output : 240.000000
+# WEEK 2 - BACKTRACKING (ALL IN ONE)
 
 
 
+import sys
+input = sys.stdin.readline
 
-# Problem 2 
 
-"""
-Sample Input:
-1
-7
-4 1 6 2 5 3 2
+# 1) N Queens
+def n_queens():
+    n = int(input())
+    board = [["."]*n for _ in range(n)]
 
-Expected Output:
-1 2 2 3 4 5 6
-"""
+    def is_safe(r, c):
+        for i in range(r):
+            if board[i][c] == "Q":
+                return False
+        i, j = r-1, c-1
+        while i >= 0 and j >= 0:
+            if board[i][j] == "Q":
+                return False
+            i -= 1; j -= 1
+        i, j = r-1, c+1
+        while i >= 0 and j < n:
+            if board[i][j] == "Q":
+                return False
+            i -= 1; j += 1
+        return True
 
-def merge(left_half, right_half):
-    sorted_arr = []
-    i = 0
-    j = 0
-    
-    while i < len(left_half) and j < len(right_half):
-        if left_half[i] <= right_half[j]:
-            sorted_arr.append(left_half[i])
-            i += 1
-        else:
-            sorted_arr.append(right_half[j])
-            j += 1
-    
-    
-    sorted_arr.extend(left_half[i:])
-    sorted_arr.extend(right_half[j:])
-    
-    return sorted_arr
+    def solve_row(r):
+        if r == n:
+            for row in board:
+                print(" ".join(row))
+            return True
+        for c in range(n):
+            if is_safe(r, c):
+                board[r][c] = "Q"
+                if solve_row(r+1):
+                    return True
+                board[r][c] = "."
+        return False
 
-def merge_sort(arr):
-    if len(arr) <= 1:
-        return arr
-    
-    # Divide
-    mid = len(arr) // 2
-    left_half = arr[:mid]
-    right_half = arr[mid:]
+    solve_row(0)
 
-    
-    left_sorted = merge_sort(left_half)
-    right_sorted = merge_sort(right_half)
-    
-    return merge(left_sorted, right_sorted)
+
+# 2) Permutations
+def permutations_string():
+    s = list(input().strip())
+    n = len(s)
+
+    def backtrack(i):
+        if i == n:
+            print("".join(s))
+            return
+        for j in range(i, n):
+            s[i], s[j] = s[j], s[i]
+            backtrack(i+1)
+            s[i], s[j] = s[j], s[i]
+
+    backtrack(0)
+
+
+# 3) Subset Sum
+def subset_sum():
+    n = int(input())
+    arr = list(map(int, input().split()))
+    target = int(input())
+
+    def backtrack(i, curr):
+        if curr == target:
+            return True
+        if i == n or curr > target:
+            return False
+        return backtrack(i+1, curr+arr[i]) or backtrack(i+1, curr)
+
+    print(backtrack(0, 0))
+
+
+# 4) Sudoku Solver
+def sudoku():
+    grid = [list(map(int, input().split())) for _ in range(9)]
+
+    def is_safe(r, c, num):
+        for x in range(9):
+            if grid[r][x] == num or grid[x][c] == num:
+                return False
+        sr, sc = r - r%3, c - c%3
+        for i in range(3):
+            for j in range(3):
+                if grid[sr+i][sc+j] == num:
+                    return False
+        return True
+
+    def solve_cell():
+        for i in range(9):
+            for j in range(9):
+                if grid[i][j] == 0:
+                    for num in range(1, 10):
+                        if is_safe(i, j, num):
+                            grid[i][j] = num
+                            if solve_cell():
+                                return True
+                            grid[i][j] = 0
+                    return False
+        return True
+
+    solve_cell()
+    for row in grid:
+        print(*row)
+
+
+# 5) Rat in Maze
+def rat_maze():
+    n = int(input())
+    maze = [list(map(int, input().split())) for _ in range(n)]
+    path = [[0]*n for _ in range(n)]
+
+    def backtrack(r, c):
+        if r == n-1 and c == n-1 and maze[r][c] == 1:
+            path[r][c] = 1
+            return True
+        if 0 <= r < n and 0 <= c < n and maze[r][c] == 1 and path[r][c] == 0:
+            path[r][c] = 1
+            if backtrack(r+1, c) or backtrack(r, c+1):
+                return True
+            path[r][c] = 0
+        return False
+
+    if backtrack(0, 0):
+        for row in path:
+            print(*row)
+    else:
+        print("No Path")
+
 
 def solve():
-    try:
+    choice = int(input().strip())
 
-        input_line = input().strip()
-        if not input_line:
-            return
-        t = int(input_line)
-        
-        for _ in range(t):
-            
-            try:
-                n = int(input().strip())
-            except EOFError:
-                break
-                
-            arr = list(map(int, input().strip().split()))
-            
-            result = merge_sort(arr)
-            
-            print(*result)
-            
-    except EOFError:
-        pass
+    if choice == 1:
+        n_queens()
+    elif choice == 2:
+        permutations_string()
+    elif choice == 3:
+        subset_sum()
+    elif choice == 4:
+        sudoku()
+    elif choice == 5:
+        rat_maze()
+
 
 if __name__ == "__main__":
     solve()
+
+
+
+# -------- Assignment 1: N-Queens --------
+# Input:
+# 4
+# Output (One Valid):
+# . Q . .
+# . . . Q
+# Q . . .
+# . . Q .
+
+# -------- Assignment 2: String Permutations --------
+# Input:
+# ABC
+# Output:
+# ABC
+# ACB
+# BAC
+# BCA
+# CAB
+# CBA
+
+# -------- Assignment 3: Subset Sum --------
+# Input:
+# 5
+# 3 34 4 12 5
+# 9
+# Output:
+# True
+
+# -------- Assignment 4: Sudoku Solver --------
+# Input: 9x9 grid with 0 as empty
+# Output: Solved grid
+
+# -------- Assignment 5: Rat in a Maze --------
+# Input:
+# 4
+# 1 0 0 0
+# 1 1 0 1
+# 0 1 0 0
+# 1 1 1 1
+# Output: One valid path matrix
+  
+
+
+  
